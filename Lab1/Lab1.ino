@@ -3,21 +3,20 @@ const int RED = 9;
 const int BLUE = 10;
 const int YELLOW = 11;
 const int INFRA = A0;
+const int BUTTON = 8;
 
 int val = 0;
 int old_val = 0;
 int dist = 0;
 
-const int BUTTON = 8;
-
 int temp = 0;
-
 
 void all_on();
 void all_off();
 void flashing();
 void one_at_a_time();
 void dj_set();
+void pciSetup(byte pin);
 
 
 void setup() {
@@ -38,10 +37,6 @@ void loop() {
   val = digitalRead(BUTTON);
 
   dist = analogRead(INFRA);
-  
-
-
-  
 
   if (old_val == 0 && val == 1)
   {
