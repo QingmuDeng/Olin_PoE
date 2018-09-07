@@ -3,7 +3,7 @@ const int RED = 9;
 const int BLUE = 10;
 const int YELLOW = 11;
 const int INFRA = A0;
-const int BUTTON = 8;
+const int BUTTON = 2;
 
 int val = 0;
 int old_val = 0;
@@ -16,7 +16,6 @@ void all_off();
 void flashing();
 void one_at_a_time();
 void dj_set();
-void pciSetup(byte pin);
 
 
 void setup() {
@@ -29,6 +28,8 @@ void setup() {
   pinMode(BUTTON, INPUT);
 
   Serial.begin(9600);
+
+  attachInterrupt(digitalPinToInterrupt(BUTTON), button_push, RISING);
 }
 
 void loop() {
@@ -38,10 +39,10 @@ void loop() {
 
   dist = analogRead(INFRA);
 
-  if (old_val == 0 && val == 1)
-  {
-     temp++;
-  }
+//  if (old_val == 0 && val == 1)
+//  {
+//     temp++;
+//  }
 
   if (temp % 5 == 1)
   {
@@ -73,12 +74,18 @@ void loop() {
   
 }
 
+void button_push() {
+  temp++;
+  delay(100);
+  
+}
+
 void all_on() {
 
-  digitalWrite(GREEN, HIGH);
-  digitalWrite(RED, HIGH);
-  digitalWrite(BLUE, HIGH);
-  digitalWrite(YELLOW, HIGH);
+  analogWrite(GREEN, dist/4);
+  analogWrite(RED, dist/4);
+  analogWrite(BLUE, dist/4);
+  analogWrite(YELLOW, dist/4);
 }
 
 void all_off() {
@@ -91,20 +98,20 @@ void all_off() {
 }
 
 void flashing() {
-  
+
   digitalWrite(GREEN, HIGH);
   digitalWrite(RED, HIGH);
   digitalWrite(BLUE, HIGH);
   digitalWrite(YELLOW, HIGH);
 
-  delay(100);
+  delay(dist);
 
   digitalWrite(GREEN, LOW);
   digitalWrite(RED, LOW);
   digitalWrite(BLUE, LOW);
   digitalWrite(YELLOW, LOW);
 
-  delay(100);
+  delay(dist);
 }
 
 void one_at_a_time() {
@@ -114,28 +121,31 @@ void one_at_a_time() {
   digitalWrite(BLUE, LOW);
   digitalWrite(YELLOW, LOW);
 
-  delay(100);
+  delay(dist);
+  dist = analogRead(INFRA);
 
   digitalWrite(GREEN, LOW);
   digitalWrite(RED, HIGH);
   digitalWrite(BLUE, LOW);
   digitalWrite(YELLOW, LOW);
 
-  delay(100);
+  delay(dist);
+  dist = analogRead(INFRA);
 
   digitalWrite(GREEN, LOW);
   digitalWrite(RED, LOW);
   digitalWrite(BLUE, HIGH);
   digitalWrite(YELLOW, LOW);
 
-  delay(100);
+  delay(dist);
+  dist = analogRead(INFRA);
 
   digitalWrite(GREEN, LOW);
   digitalWrite(RED, LOW);
   digitalWrite(BLUE, LOW);
   digitalWrite(YELLOW, HIGH);
 
-  delay(100);
+  delay(dist);
   
 }
 
@@ -156,5 +166,5 @@ void dj_set() {
   digitalWrite(BLUE, random_3);
   digitalWrite(YELLOW, random_4);
 
-  delay(100);
+  delay(dist);
 }
