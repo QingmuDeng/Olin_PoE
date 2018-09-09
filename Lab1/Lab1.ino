@@ -45,12 +45,10 @@ void loop() {
   {
     all_on();
   }
-
   else if (temp % 5 == 2)
   {
     flashing();
-  } 
-  
+  }
   else if (temp % 5 == 3)
   {
     one_at_a_time();
@@ -59,7 +57,6 @@ void loop() {
   {
     dj_set();
   }
-
   else if (temp % 5 == 0)
   {
     all_off();
