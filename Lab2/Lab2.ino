@@ -1,9 +1,10 @@
 #include <Servo.h>
 
 Servo pan;
-uint8_t pan_angle=0;
+uint8_t pan_angle=60;
 Servo tilt;
 uint8_t tilt_angle=60;
+bool tilt_direction=true;
 const int sweep_increment = 4;
 const int sweep_delay = 75;
 
@@ -14,13 +15,15 @@ int sensorVal = 0;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115520);
-  pan.attach(10);
-  tilt.attach(9);
+  pan.attach(9);
+  tilt.attach(10);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   pan_tilt_sweep();//
+//  pan.write(0);
+//  tilt.write(97);
   take_measure();
   print_to_laptop();
   Serial.println(sensorVal);
@@ -28,16 +31,23 @@ void loop() {
 
 void pan_sweep(){
   pan.write(pan_angle);
-  if(pan_angle > 180){
-    pan_angle = 0;
+  if(pan_angle > 90){
+    pan_angle = 60;
   }
 }
 
 void tilt_sweep(){
   tilt.write(tilt_angle);
-  tilt_angle += sweep_increment;
+  if(tilt_direction){
+    tilt_angle += sweep_increment;
+  }else{
+    tilt_angle -= sweep_increment;
+  }
   if(tilt_angle > 120){
-    tilt_angle = 60;
+    tilt_direction = false;
+    pan_angle += 2;//sweep_increment;
+  }else if(tilt_angle<60){
+    tilt_direction = true;
     pan_angle += 2;//sweep_increment;
   }
 }
