@@ -28,21 +28,22 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   if(state == Initialize){
-    pan_angle = 60;
-    tilt_angle=60;
+    pan_angle = 50;
+    tilt_angle = 85;
     pan.write(pan_angle);
     tilt.write(tilt_angle);
   }else if(state == Scanning){
     pan_tilt_sweep();
+    tilt.write(tilt_angle);
     take_measure();
-    print_to_laptop();
+    print_to_laptop(); 
   }
 }
 
 void pan_sweep(){
   /* Pan sweep definition */
-  if(pan_angle > 90){
-    pan_angle = 60;
+  if(pan_angle > 120){
+    pan_angle = 50;
   }
   pan.write(pan_angle);
 }
@@ -54,10 +55,10 @@ void tilt_sweep(){
   }else{
     tilt_angle -= sweep_increment;
   }
-  if(tilt_angle > 120){
+  if(tilt_angle > 115){
     tilt_direction = false;
     pan_angle += sweep_increment;
-  }else if(tilt_angle<60){
+  }else if(tilt_angle < 85){
     tilt_direction = true;
     pan_angle += sweep_increment;
   }

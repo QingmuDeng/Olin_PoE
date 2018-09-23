@@ -1,4 +1,4 @@
-import serial, time
+import serial, time, pickle
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as np
@@ -59,14 +59,15 @@ class Scanner():
                     continue
                 val[2] = interpolate(val[2])
                 if val[2] == 0:
+                    self.dataPointNum += 1
                     continue
+
                 print(val)
 
                 self.measure.append(val[2])
                 self.pan.append(val[0])
                 self.tilt.append(val[1])
                 
-                # plt.zlabel('Tilt')
                 self.dataPointNum += 1
 
     def exit(self):
@@ -77,6 +78,11 @@ class Scanner():
         self.ax.set_ylabel('Pan(degrees)')
         self.ax.set_zlabel('Tilt(degrees)')
         self.ax.scatter(self.measure, self.pan, self.tilt, color='b')
+        file_name = time.strftime("%Y%m%d-%H%M%S")
+        fileObject = open(file_name,'wb') 
+        pickle.dump([self.measure, self.pan, self.tilt], fileObject)
+        fileObject.close()
+        plt.xlim(20, 80)
         plt.show()
 
 
@@ -85,29 +91,29 @@ def interpolate(sensorVal):
     if sensorVal > 519:
         # print("Too close")
         return 0
-    # elif sensorVal <= 519 and sensorVal > 460:
-    #     distance = 65.01 - 0.085*(sensorVal)
-    # elif sensorVal <= 460 and sensorVal > 363:
-    #     distance = 60.278 - 0.076*(sensorVal)
-    # elif sensorVal <= 363 and sensorVal > 289:
-    #     distance = 78.47 - 0.122*(sensorVal)
-    # elif sensorVal <= 289 and sensorVal > 245:
-    #     distance = 93.23 - 0.173*(sensorVal)
-    # elif sensorVal <= 245 and sensorVal > 193:
-    #     distance = 110.637 - 0.244*(sensorVal)
-    # elif sensorVal <= 193 and sensorVal > 160:
-    #     distance = 152.631 - 0.462*(sensorVal)
-    # elif sensorVal <= 160 and sensorVal > 113:
-    #     distance = 182.502-0.649*(sensorVal)
-    # elif sensorVal <= 113 and sensorVal > 97:
-    #     distance = 234.79 - 1.111*(sensorVal)
-    # elif sensorVal <= 97 and sensorVal > 80:
-    #     distance = 271.6 - 1.49*(sensorVal)
+    elif sensorVal <= 519 and sensorVal > 460:
+        distance = 65.01 - 0.085*(sensorVal)
+    elif sensorVal <= 460 and sensorVal > 363:
+        distance = 60.278 - 0.076*(sensorVal)
+    elif sensorVal <= 363 and sensorVal > 289:
+        distance = 78.47 - 0.122*(sensorVal)
+    elif sensorVal <= 289 and sensorVal > 245:
+        distance = 93.23 - 0.173*(sensorVal)
+    elif sensorVal <= 245 and sensorVal > 193:
+        distance = 110.637 - 0.244*(sensorVal)
+    elif sensorVal <= 193 and sensorVal > 160:
+        distance = 152.631 - 0.462*(sensorVal)
+    elif sensorVal <= 160 and sensorVal > 113:
+        distance = 182.502-0.649*(sensorVal)
+    elif sensorVal <= 113 and sensorVal > 97:
+        distance = 234.79 - 1.111*(sensorVal)
+    elif sensorVal <= 97 and sensorVal > 80:
+        distance = 271.6 - 1.49*(sensorVal)
     elif sensorVal <= 80:
         # print("Too far away")
         return 0
 
-    return sensorVal
+    return distance
 
 
 def main():
@@ -118,7 +124,7 @@ def main():
 
     scanner.config_arduino() 
 
-    scanner.read_data(10)
+    scanner.read_data(576)
 
     scanner.exit()
 
