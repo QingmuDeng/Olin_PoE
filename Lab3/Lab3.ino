@@ -3,42 +3,27 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
+#include "struct.h"
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(3);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(4);
 
+int change;
+int val;
 int max_speed = 50; // max speed 255
 
-typedef enum{
-  Tune_p,
-  Tune_i,
-  Tune_d,
-  Tune_m, //Menu to choose p, i, or d. It's the "no state selected state"
-} TuneState;
 volatile TuneState state;
 
-typedef struct {
-  int sensor_left, sensor_right, diff, error;
-} Sensors;
 Sensors sense;
-void SensorUpdate(&Sensors mySense){
+void SensorUpdate(Sensors* mySense){
   mySense->sensor_left = analogRead(A0);
   mySense->sensor_right = analogRead(A1);
   mySense->diff = mySense->sensor_left - mySense->sensor_right;
   mySense->error = 0 - mySense->diff;
 }
 
-typedef struct {
-  double iGain,
-         pGain,
-         dGain;
 
-  double dState,
-         iState,
-         iMin,
-         iMax;
-} PidObject;
 PidObject controller;
 
 void PidInitialize(PidObject* pid){
@@ -56,13 +41,13 @@ void PidInitialize(PidObject* pid){
   pid->iMax = pid_init.iMax;
 }
 
-double PidUpdate(PidObject* pid, double error, double position)
+double PidUpdate(PidObject* pid, Sensors* Mysense)
 {
   double pTerm, dTerm, iTerm;
 
-  pTerm = pid->pGain * error; // calculate the proportional terms
+  pTerm = pid->pGain * Mysense->error; // calculate the proportional terms
 
-  pid->iState += error;
+  pid->iState += Mysense->error;
   if(pid->iState > pid->iMax) pid->iState = pid->iMax;
   else if(pid->iState < pid->iMin) pid->iState = pid->iMin;
 
@@ -72,11 +57,11 @@ double PidUpdate(PidObject* pid, double error, double position)
 }
 
 void MotorUpdate(int motor_diff){
-  leftMotor->setSpeed(150);
-  rightMotor->setSpeed(150+motor_diff);
+  leftMotor->setSpeed(40);
+  rightMotor->setSpeed(40+motor_diff);
   leftMotor ->run(FORWARD);
   rightMotor ->run(FORWARD);
-  Serial.println("FORWARD");
+//  Serial.println("FORWARD");
 }
 
 void setup() {
@@ -95,7 +80,7 @@ void loop() {
 
   // Calculate the difference between two motors to turn
   double motor_diff = PidUpdate(&controller, &sense);
-  Serial.println(motor_diff);
+//  Serial.println(motor_diff);
   /** Motor Code **/
   MotorUpdate(motor_diff);
   /** End of Motor Code **/
@@ -104,38 +89,45 @@ void loop() {
   if (Serial.available()){
     switch (state){
       case Tune_p:
-        int change = Serial.parseInt();         //if state == Tune_p, read serial with Serial.parseInt() [takes number with more than one digit] and change corresponding gain
+        change = Serial.parseInt();         //if state == Tune_p, read serial with Serial.parseInt() [takes number with more than one digit] and change corresponding gain
         if (change == 1000){
           state = Tune_m;
-        }else{
+          Serial.println("BACK IN MENU");
+        }else if (change > 0){
           Serial.print("P changed by "); Serial.println(change);
         }
+        break;
       case Tune_i:
-        int change = Serial.parseInt();
+        change = Serial.parseInt();
         if (change == 1000){
           state = Tune_m;
-        }else{
+          Serial.println("BACK INMENU");
+        }else if (change > 0){
           Serial.print("I changed by "); Serial.println(change);
         }
+        break;
       case Tune_d:
-        int change = Serial.parseInt();
+        change = Serial.parseInt();
         if (change == 1000){
           state = Tune_m;
-        }else{
+          Serial.println("BACK IN MENU");
+        }else if (change > 0){
           Serial.print("D changed by "); Serial.println(change);
         }
+        break;
       case Tune_m:                              //If state == Tune_m, check serial input for 'p','i', or 'd' and change state to it
-        int val = Serial.read();
+        val = Serial.read();
         if (val == (int)'p'){
           state = Tune_p;
-          Serial.print("Changed to state P")
+          Serial.println("Changed to state P");
         }else if (val == (int)'i'){
           state = Tune_i;
-          Serial.print("Changed to state I")
+          Serial.println("Changed to state I");
         }else if (val == (int)'d'){
           state = Tune_d;
-          Serial.print("Changed to state D")
+          Serial.println("Changed to state D");
         }
-    }
+        break;
+    }Serial.print("State"); Serial.println(state);
   }
 }
