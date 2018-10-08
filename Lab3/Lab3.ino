@@ -9,7 +9,8 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(3);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(4);
 
-int change;
+float change;
+String input;
 int val;
 int max_speed = 50; // max speed 255
 
@@ -23,16 +24,16 @@ void SensorUpdate(Sensors* mySense){
   mySense->error = 0 - mySense->diff;
 }
 
-
 PidObject controller;
-
 void PidInitialize(PidObject* pid){
   PidObject pid_init;
-  pid_init.pGain = 0.05;
-  pid_init.iGain = 0.0001;
+  pid_init.pGain = 0.02;
+  pid_init.iGain = 0.095;
   pid_init.dGain = 0;
-  pid_init.iMin = -700;
-  pid_init.iMax = 700;
+  pid_init.iMin = -500;
+  pid_init.iMax = 500;
+
+
 
   pid->iGain = pid_init.iGain;
   pid->pGain = pid_init.pGain;
@@ -41,9 +42,9 @@ void PidInitialize(PidObject* pid){
   pid->iMax = pid_init.iMax;
 }
 
-double PidUpdate(PidObject* pid, Sensors* Mysense)
+float PidUpdate(PidObject* pid, Sensors* Mysense)
 {
-  double pTerm, dTerm, iTerm;
+  float pTerm, dTerm, iTerm;
 
   pTerm = pid->pGain * Mysense->error; // calculate the proportional terms
 
@@ -57,8 +58,8 @@ double PidUpdate(PidObject* pid, Sensors* Mysense)
 }
 
 void MotorUpdate(int motor_diff){
-  leftMotor->setSpeed(40);
-  rightMotor->setSpeed(40+motor_diff);
+  leftMotor->setSpeed(35-(motor_diff>>1));
+  rightMotor->setSpeed(35+(motor_diff>>1));
   leftMotor ->run(FORWARD);
   rightMotor ->run(FORWARD);
 //  Serial.println("FORWARD");
@@ -79,7 +80,7 @@ void loop() {
   SensorUpdate(&sense);
 
   // Calculate the difference between two motors to turn
-  double motor_diff = PidUpdate(&controller, &sense);
+  float motor_diff = PidUpdate(&controller, &sense);
 //  Serial.println(motor_diff);
   /** Motor Code **/
   MotorUpdate(motor_diff);
@@ -89,29 +90,36 @@ void loop() {
   if (Serial.available()){
     switch (state){
       case Tune_p:
-        change = Serial.parseInt();         //if state == Tune_p, read serial with Serial.parseInt() [takes number with more than one digit] and change corresponding gain
+        input = Serial.readString();
+        change = input.toFloat();
+        Serial.println(input.toFloat());      //if state == Tune_p, read serial with Serial.parseInt() [takes number with more than one digit] and change corresponding gain
         if (change == 1000){
           state = Tune_m;
           Serial.println("BACK IN MENU");
         }else if (change > 0){
-          Serial.print("P changed by "); Serial.println(change);
+          controller.pGain = change;
+          Serial.print("P changed to "); Serial.println(input);
         }
         break;
       case Tune_i:
-        change = Serial.parseInt();
+      input = Serial.readString();
+      change = input.toFloat();
         if (change == 1000){
           state = Tune_m;
           Serial.println("BACK INMENU");
         }else if (change > 0){
+          controller.iGain = change;
           Serial.print("I changed by "); Serial.println(change);
         }
         break;
       case Tune_d:
-        change = Serial.parseInt();
+        input = Serial.readString();
+        change = input.toFloat();
         if (change == 1000){
           state = Tune_m;
           Serial.println("BACK IN MENU");
         }else if (change > 0){
+          controller.dGain = change;
           Serial.print("D changed by "); Serial.println(change);
         }
         break;
