@@ -4,6 +4,7 @@
 #include <Adafruit_MotorShield.h>
 #include "utility/Adafruit_MS_PWMServoDriver.h"
 #include "struct.h"
+#include <EEPROM.h>
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(3);
@@ -13,6 +14,7 @@ float change;
 String input;
 int val;
 int max_speed = 50; // max speed 255
+unsigned int addr = 0x01;
 
 volatile TuneState state;
 
@@ -76,6 +78,12 @@ void setup() {
 
 void loop() {
 
+  PidObject temp;
+  EEPROM.get(addr, temp);
+  if(temp.iGain != 0x0){
+    controller = temp;
+  }
+
   // Update sense struct accordingly
   SensorUpdate(&sense);
 
@@ -136,6 +144,12 @@ void loop() {
           Serial.println("Changed to state D");
         }
         break;
-    }Serial.print("State"); Serial.println(state);
+    }
+    Serial.print("State"); Serial.println(state);
+    Serial.print("p: "); Serial.println(controller.pGain);
+    Serial.print("addr: "); Serial.println(addr);
+    Serial.println(controller.pGain);
   }
+
+  EEPROM.put(addr, controller);
 }
