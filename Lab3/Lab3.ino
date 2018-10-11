@@ -29,7 +29,7 @@ void SensorUpdate(Sensors* mySense){
 PidObject controller;
 void PidInitialize(PidObject* pid){
   PidObject pid_init;
-  pid_init.pGain = 0.02;
+  pid_init.pGain = 0.022;
   pid_init.iGain = 0.095;
   pid_init.dGain = 0;
   pid_init.iMin = -500;
@@ -77,13 +77,6 @@ void setup() {
 
 
 void loop() {
-
-  PidObject temp;
-  EEPROM.get(addr, temp);
-  if(temp.iGain != 0x0){
-    controller = temp;
-  }
-
   // Update sense struct accordingly
   SensorUpdate(&sense);
 
@@ -150,6 +143,4 @@ void loop() {
     Serial.print("addr: "); Serial.println(addr);
     Serial.println(controller.pGain);
   }
-
-  EEPROM.put(addr, controller);
 }
