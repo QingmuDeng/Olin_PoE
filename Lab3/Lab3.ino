@@ -15,6 +15,12 @@ String input;
 int val;
 int max_speed = 50; // max speed 255
 unsigned int addr = 0x01;
+int rightSpeed;
+int leftSpeed;
+unsigned long startTime = millis();
+unsigned long currentTime = millis();
+unsigned long elapsedTime;
+
 
 volatile TuneState state;
 
@@ -62,6 +68,8 @@ float PidUpdate(PidObject* pid, Sensors* Mysense)
 void MotorUpdate(int motor_diff){
   leftMotor->setSpeed(35-(motor_diff>>1));
   rightMotor->setSpeed(35+(motor_diff>>1));
+  leftSpeed = 35-(motor_diff>>1);
+  rightSpeed = 35+(motor_diff>>1);
   leftMotor ->run(FORWARD);
   rightMotor ->run(FORWARD);
 //  Serial.println("FORWARD");
@@ -73,6 +81,7 @@ void setup() {
   Serial.begin(115520);
   PidInitialize(&controller);
   state = Tune_m;
+
 }
 
 
@@ -138,9 +147,24 @@ void loop() {
         }
         break;
     }
-    Serial.print("State"); Serial.println(state);
-    Serial.print("p: "); Serial.println(controller.pGain);
-    Serial.print("addr: "); Serial.println(addr);
-    Serial.println(controller.pGain);
+
   }
+  currentTime = millis();
+  elapsedTime = currentTime - startTime;
+  if (elapsedTime > 50) {
+    print_to_laptop();
+    startTime= currentTime;
+  }
+
+
+}
+
+
+
+void print_to_laptop(){
+  Serial.print("left motor = ");  Serial.print(leftSpeed);  Serial.print("    ");
+  Serial.print("right motor = ");  Serial.print(rightSpeed);  Serial.print("    ");
+  Serial.print("left sensor = ");  Serial.print(sense.sensor_left); Serial.print("    ");
+  Serial.print("right sensor= "); Serial.print(sense.sensor_right);  Serial.print("    ");
+  Serial.print("time= "); Serial.println(currentTime);
 }
