@@ -64,7 +64,7 @@ class LineRobot():
 
         file_name = time.strftime("%Y%m%d-%H%M%S")
         fileObject = open(file_name,'wb')
-        pickle.dump([self.leftmotor, self.rightmotor, self.sensor_left, self.sensor_right], fileObject)
+        pickle.dump([self.leftmotor, self.rightmotor, self.sensor_left, self.sensor_right, self.time], fileObject)
         fileObject.close()
 
         print(self.rightmotor)
